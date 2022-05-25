@@ -1,9 +1,18 @@
-A descriptive project title
+[//]: # "TODO: Compose readme"
 
-Motivation (why the project exists)
+# Versioned LRU Cache (Cache with invalidation support)
 
-How to setup
+## Short description/ summary
 
-Copy-pastable quick start code example
+## Motivation
+(why the project exists)
 
-Recommended citation
+## Intended usecase and caveats
+
+## How to setup
+
+## Copy-pastable quick start code example
+
+## Extended example with Flask
+
+## Recommended citation

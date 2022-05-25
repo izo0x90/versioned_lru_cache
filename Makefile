@@ -5,7 +5,8 @@ SOURCEDIRS=${SOURCEDIR} ${EXAMPLESDIR}
 
 .PHONY: hello
 hello:
-	@echo "Hello, world!"
+	@echo '"And I have found both freedom of loneliness and the safety from being'"\n"\
+	' understood, for those who understand us enslave something in us." - Khalil Gibran'
 
 
 .PHONY: venv

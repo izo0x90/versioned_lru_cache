@@ -1,3 +1,4 @@
+# TODO: Decide on python version and update
 [build-system]
 requires = ["setuptools>=42"]
 build-backend =  "setuptools.build_meta"
