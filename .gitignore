@@ -1,4 +1,4 @@
 .env
 install.stamp
-# src/*.egg-info
+src/*.egg-info
 dist
