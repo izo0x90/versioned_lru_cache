@@ -1,8 +1,0 @@
-LICENSE
-README.md
-pyproject.toml
-setup.cfg
-src/versioned_lru_cache.egg-info/PKG-INFO
-src/versioned_lru_cache.egg-info/SOURCES.txt
-src/versioned_lru_cache.egg-info/dependency_links.txt
-src/versioned_lru_cache.egg-info/top_level.txt

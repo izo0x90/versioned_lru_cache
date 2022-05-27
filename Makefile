@@ -3,10 +3,16 @@ SOURCEDIR=src
 EXAMPLESDIR=examples
 SOURCEDIRS=${SOURCEDIR} ${EXAMPLESDIR}
 
+
 .PHONY: hello
 hello:
 	@echo '"And I have found both freedom of loneliness and the safety from being'"\n"\
 	' understood, for those who understand us enslave something in us." - Khalil Gibran'
+
+
+.PHONY: todo
+todo:
+	@grep -r --exclude=Makefile 'TODO:' .
 
 
 .PHONY: venv
@@ -51,6 +57,7 @@ dist: install.stamp
 .env:
 	@echo 'Setting up env. ...'
 	@echo 'FLASK_APP=${EXAMPLESDIR}/flask_mysql_app.py' > .env
+	
 	
 .PHONY:	format
 format: install.stamp

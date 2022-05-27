@@ -1,5 +1,4 @@
-# TODO: add build artifact dirs to ignore
-# - dist
-# - src/*.egg-info
 .env
 install.stamp
+# src/*.egg-info
+dist
