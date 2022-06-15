@@ -1,8 +1,26 @@
 # coding: utf-8
 """
-SOME DOCS TO GO HERE
+'Public' function in this module:
+    versioned_lru_cache_with_ttl
+
+Purpose:
+    versioned_lru_cache_with_ttl is a decorator that can provide versioned lru caching
+    of function return results.
+
+    By being provided with an invalidation function that can determine if the cached
+    return results have gone stale, the function wrapper will either return the
+    cached value or rerun the function and return and re-cache the new results in the
+    case of stale cache.
+
+    The idea is that recalculating the work of the function is costly, but there is a
+    much "cheaper" invalidation function that can tell us when work needs to be redone.
+
+    The decorator factory (versioned_lru_cache_with_ttl) also expects being passed a
+    proxy to a mutable mapping, this proxy should provide a "fresh" version of the
+    mapping per session. Ex. here being the g request context object used by the Flask
+    web framework. This allows to calculate the invalidation/ version only once per
+    session and can make the caching even more efficient.
 """
-# TODO: Add further doc strings
 
 from __future__ import annotations
 import functools
@@ -23,7 +41,7 @@ class ProxyToMutableMapping(Protocol):
     NOTE: Whatever the mutable mapping that stores the cache version ids for the
     duration of the session (ex. request) should not be pointed to directly, but rather
     by a proxy that can provide us access to a new "session context" every time a
-    "session" restarts.
+    "session" restarts. (Ex. Flask g object)
 
     This is due to the fact that the ref. to this "proxy" object will be
     composed/ stored when the decorator factory is building the wrapper function.
@@ -71,8 +89,11 @@ def get_lru_cache_version_on_session_context(
     function_name: str,
 ) -> Optional[str]:
     """
-    We are enforcing the invariant about the cache version being a str with the
-    return required of the versioning function
+    Just a getter utility to extract the cache version ID from the global session
+    context object, if one has been stored there.
+
+    Note on type ignore: We are enforcing the invariant about the cache version
+    being a str with the return required of the versioning function
     """
     return (  # type: ignore[no-any-return]
         proxy_to_session_context_object.get(_SESSION_CONTEXT_CACHE_MAP_NAME, {})
@@ -95,12 +116,36 @@ def versioned_lru_cache_with_ttl(
     Decorator factory.
 
     Args:
-        proxy_to_session_context_object: ProxyToMutableMapping,
-        generate_version_func: CacheVersionFunc,
-        module_name: str,
-        cache_max_size: int = 1,
-        time_to_live_seconds: int = 60 * 60,  # 1 hour
-        no_history_events_default_version: str = "-1"
+        proxy_to_session_context_object: ProxyToMutableMapping - Some proxy object that
+        can provide a new mutable mapping per session to the caching wrapper so that in
+        has a place to store cache version value once it has been calced.
+        Ex. Flask g request context object
+
+        generate_version_func: CacheVersionFunc - Some function that can calculate
+        "version" IDs, this should be a light way that can determine if the cache has
+        staled.
+        Ex. ID of last row inserted in a sql table, indicating new data inserted so
+        work must be redone and cached return results are stale
+
+        module_name: str - Name of the module the function is in, this is strictly
+        used to namespace the cache versions in case there is name collision in the
+        function names so it can really be anything as long as it is unique.
+
+        cache_max_size: int = 1 - Same meaning as lru_cache, how many unique function
+        calls should be cached. Defaults to 1.
+
+        time_to_live_seconds: int = 60 * 60 - Time to live for the cache value, after
+        ttl expires work will be redone and re-cached even if the invalidation func.
+        still claims the cache is not stale.
+
+        no_history_events_default_version: str = "-1" - Default cache version value in
+        case the invalidation/ version gen. function can not generate a version id
+        until some state change has occurred.
+
+        NOTE on default version arg:
+        This should probably get removed as expectation should be that a invalidation
+        function should always be able to generate a version ID. Was a hack-y way of
+        solving for some use case, while prototyping a thing that used this caching.
 
     Returns:
         Decorator that will setup/ generate the versioned cache wrapper.
@@ -109,8 +154,6 @@ def versioned_lru_cache_with_ttl(
     def decorator(
         to_be_cached_func: Callable[ToBeCashedFuncPrams, ToBeCashedFuncReturnVal]
     ) -> Callable:
-        """ """
-
         def with_version(
             *args: Any, _lru_cache_version: CacheVersionId, **kwargs: Any
         ) -> Any:
@@ -118,8 +161,7 @@ def versioned_lru_cache_with_ttl(
             # and retrieve versioned return results, we want to remove before passing
             # call args to actual to_be_cached_func to avoid blowing up if
             # func signature can not handle or other unintended side-effects
-            # del kwargs["_lru_cache_version"]
-            _lru_cache_version
+            _lru_cache_version  # Func. sig. consumes this kwarg, silence not used
             return to_be_cached_func(*args, **kwargs)
 
         to_be_cached_func_name = getattr(to_be_cached_func, "__name__")
@@ -148,8 +190,8 @@ def versioned_lru_cache_with_ttl(
 
             # On the first call within a "session" we need to run the version
             # calculate function and store the cache version id on the
-            # "session context", this way further call to the cached function can
-            # simply return the cached return value of the function
+            # "session context", this way further calls to the cached function can
+            # simply return the cached return value
             if not cache_version_id:
                 cache_version_id = (
                     generate_version_func(*args, **kwargs)
@@ -170,7 +212,7 @@ def versioned_lru_cache_with_ttl(
             )
 
             # If the version changed either because the version generate function shows
-            # underlaying data has changed or time to live has expired cache should be
+            # underlying data has changed or time to live has expired cache should be
             # invalidated and function needs to "redo" the work and re-cache so that
             # stale results are not returned
             return with_version(
