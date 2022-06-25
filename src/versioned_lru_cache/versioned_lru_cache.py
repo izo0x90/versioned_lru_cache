@@ -22,7 +22,6 @@ Purpose:
     session and can make the caching even more efficient.
 """
 
-from __future__ import annotations
 import functools
 import time
 from typing import Any, Callable, Tuple, TypeVar, ParamSpec, Optional
