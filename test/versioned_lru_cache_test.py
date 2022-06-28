@@ -1,4 +1,3 @@
-# TODO: Add actual tests
 from contextlib import contextmanager
 from unittest.mock import Mock
 import random
