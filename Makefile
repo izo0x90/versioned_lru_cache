@@ -30,7 +30,7 @@ test: install.stamp
 	@pipenv run pytest test
 	
 	
-.PHONY: test_example
+.PHONY: test-example
 test_example: install.stamp .env
 	@echo "Running flask versioned lru cache example ..."
 	@pipenv run flask run

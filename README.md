@@ -1,5 +1,3 @@
-[//]: # "TODO: Compose readme"
-
 # Versioned LRU Cache (Cache with invalidation support)
 
 ## Short description/ summary
@@ -21,7 +19,7 @@ web framework. This allows to calculate the invalidation/ version only once per
 session and can make the caching even more efficient.
 
 ## Motivation
-There a million caveats I want to cover here but I will leave those for the 
+There a quite a few caveats I want to cover here but I will leave those for the 
 section bellow.
 
 The general idea here is that we have some time consuming work that takes place
@@ -176,10 +174,96 @@ Well then you  might possibly have a use case for this peculiar cache implementa
 
 ## How to setup
 
+### To setup for development:
+```
+make dev-install 
+```
+
+### To build for distribution:
+```
+make build 
+```
+
+### To run tests (pytest), python type check (mypy) and linting (flake8):
+```
+make test
+```
+
+### To run live Flask-example/ test:
+```
+make test-example
+```
+
+### To format all code (black):
+```
+make format
+```
+
+### To get any outstanding to-dos in code (Marked with "# TODO:"): 
+```
+make todo
+```
+
+### To clean up all build artifacts and dev envir. leaving only repo:
+```
+make clean
+```
+
+### To properly begin your day:
+```
+make hello
+```
+
 ## Copy-pastable quick start code example
+
+```
+import random
+from typing import Any
+
+from versioned_lru_cache import versioned_lru_cache_with_ttl
+
+g: dict = {}  # Fake global context for testing
+
+
+def test_gen_version(*args: Any, **kwargs: Any) -> str:
+    return str(random.randint(0, 1000000000000))
+
+
+@versioned_lru_cache_with_ttl(
+    proxy_to_session_context_object=g,
+    generate_version_func=test_gen_version,
+    module_name="test_module_name",
+)
+def test_function_we_want_to_cache(test: Any = None) -> str:
+    # Some very heavy computation or database query here
+    print("Doing heavy work! aka. test function body is executing.")
+    return 'This is the result of the "heavy" work.'
+
+
+def main() -> int:
+    print(
+        "Call one no params",
+        test_function_we_want_to_cache(),
+        test_function_we_want_to_cache.__name__,
+    )
+    print(
+        "Call two no params",
+        test_function_we_want_to_cache(),
+        test_function_we_want_to_cache.__name__,
+    )
+    print(
+        "Call three test=1 as params",
+        test_function_we_want_to_cache(test=1),
+        test_function_we_want_to_cache.__name__,
+    )
+
+    return 0
+
+
+if __name__ == "__main__":
+    SystemExit(main())
+```
 
 ## Extended example with Flask
 
-## Recommended citation
-
-
+Look in: `examples/flask_fauxdb_app_example.py`
