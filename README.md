@@ -61,6 +61,7 @@ the work output that is already cached
 is ran and its output is cached, and finally the now update and recached work output
 is returned
 
+```
            Client
              │
              ▼
@@ -128,7 +129,7 @@ is returned
                             │                    │
                             └────────────────────┘
 
-
+```
 ## Intended usecase and caveats
 There is a lot to be said for the overuse of caching in software engineering as
 opposed to structurally fixing systems too often is caching used as a bandaid.
